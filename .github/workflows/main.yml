@@ -31,7 +31,7 @@ jobs:
       - name: Build SerenityOS
         run: |
           chmod +x Meta/serenity.sh
-          Meta/serenity.sh run
+          Meta/serenity.sh image
         timeout-minutes: 180
 
       - name: Prepare artifacts
