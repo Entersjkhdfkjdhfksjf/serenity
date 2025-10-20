@@ -40,10 +40,7 @@ jobs:
           ninja grub-image
         timeout-minutes: 60
 
-      - name: Prepare artifacts
-        run: |
-          # Create a tar archive of the entire directory including dotfiles
-          tar -czf serenity-os-build.tar.gz --exclude=.git . || true
+
 
       - name: Creating Release
         id: create_release
@@ -65,13 +62,13 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload release assets (SerenityOS build)
+      - name: Upload release assets (SerenityOS grub image)
         id: upload_release_assets
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: serenity-os-build.tar.gz
-          asset_name: serenity-os-build.tar.gz
-          asset_content_type: application/gzip
+          asset_path: Build/x86_64/grub_disk_image
+          asset_name: grub_disk_image
+          asset_content_type: application/octet-stream
