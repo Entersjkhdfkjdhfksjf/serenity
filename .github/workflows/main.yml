@@ -40,7 +40,11 @@ jobs:
           ninja grub-image
         timeout-minutes: 60
 
-
+      - name: Build GRUB UEFI image
+        run: |
+          cd Build/x86_64/
+          ninja grub-uefi-image
+        timeout-minutes: 60
 
       - name: Creating Release
         id: create_release
@@ -62,8 +66,7 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload release assets (SerenityOS grub image)
-        id: upload_release_assets
+      - name: Upload release assets (SerenityOS GRUB image)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,4 +74,14 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: Build/x86_64/grub_disk_image
           asset_name: grub_disk_image
+          asset_content_type: application/octet-stream
+
+      - name: Upload release assets (SerenityOS GRUB UEFI image)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Build/x86_64/grub_uefi_disk_image
+          asset_name: grub_uefi_disk_image
           asset_content_type: application/octet-stream
