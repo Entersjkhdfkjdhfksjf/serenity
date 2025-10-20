@@ -36,22 +36,17 @@ jobs:
 
       - name: Prepare artifacts
         run: |
-          mkdir -p build_artifacts
-          # Copy the disk image to artifacts
-          if [ -f "Build/x86_64/Kernel/Kernel.elf" ]; then
-            cp -r Build/x86_64 build_artifacts/
-          fi
           # Create a tar archive of the build output
           tar -czf serenity-os-build.tar.gz Build/x86_64/ || true
 
-      - name: Create Release
-        if: success()
-        uses: softprops/action-gh-release@v1
+      - name: Creating Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: |
-            serenity-os-build.tar.gz
-            Build/x86_64/**/*
-          tag_name: serenity-${{ github.run_number }}
+          tag_name: v${{ github.run_number }}
+          release_name: SerenityOS Build ${{ github.run_number }}
           body: |
             SerenityOS build #${{ github.run_number }}
             
@@ -63,5 +58,14 @@ jobs:
             This is an automated build of SerenityOS.
           draft: false
           prerelease: false
+
+      - name: Upload release assets (SerenityOS build)
+        id: upload_release_assets
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: serenity-os-build.tar.gz
+          asset_name: serenity-os-build.tar.gz
+          asset_content_type: application/gzip
