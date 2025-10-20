@@ -36,8 +36,8 @@ jobs:
 
       - name: Prepare artifacts
         run: |
-          # Create a tar archive of the build output
-          tar -czf serenity-os-build.tar.gz Build/x86_64/ || true
+          # Create a tar archive of the entire directory including dotfiles
+          tar -czf serenity-os-build.tar.gz --exclude=.git . || true
 
       - name: Creating Release
         id: create_release
