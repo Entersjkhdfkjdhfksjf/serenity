@@ -1,0 +1,67 @@
+name: Build SerenityOS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install build-essential cmake curl libmpfr-dev libmpc-dev libgmp-dev e2fsprogs ninja-build qemu-system-gui qemu-system-x86 qemu-utils ccache rsync unzip texinfo libssl-dev zlib1g-dev -y
+
+      - name: Install GCC 13
+        run: |
+          sudo apt install gcc-13 g++-13 -y
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+
+      - name: Install Clang 19
+        run: |
+          sudo apt install libclang-19-dev clang-19 llvm-19 llvm-19-dev -y
+
+      - name: Build SerenityOS
+        run: |
+          chmod +x Meta/serenity.sh
+          Meta/serenity.sh run
+        timeout-minutes: 180
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p build_artifacts
+          # Copy the disk image to artifacts
+          if [ -f "Build/x86_64/Kernel/Kernel.elf" ]; then
+            cp -r Build/x86_64 build_artifacts/
+          fi
+          # Create a tar archive of the build output
+          tar -czf serenity-os-build.tar.gz Build/x86_64/ || true
+
+      - name: Create Release
+        if: success()
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            serenity-os-build.tar.gz
+            Build/x86_64/**/*
+          tag_name: serenity-${{ github.run_number }}
+          body: |
+            SerenityOS build #${{ github.run_number }}
+            
+            Build details:
+            - Build ID: ${{ github.run_id }}
+            - Commit: ${{ github.sha }}
+            - Trigger: ${{ github.event_name }}
+            
+            This is an automated build of SerenityOS.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
